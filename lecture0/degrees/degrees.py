@@ -61,9 +61,6 @@ def main():
     print("Loading data...")
     load_data(directory)
     print("Data loaded.")
-    # print('Dict names:', names)
-    # print('Dict people:', people)
-    # print('Dict movies:', movies)
 
     source = person_id_for_name(input("Name: "))
     if source is None:

@@ -12,12 +12,12 @@ people = {}
 # Maps movie_ids to a dictionary of: title, year, stars (a set of person_ids)
 movies = {}
 
-               
+
 def load_data(directory):
     """
     Load data from CSV files into memory.
     """
-    # Load people                        
+    # Load people
     with open(f"{directory}/people.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -61,16 +61,18 @@ def main():
     print("Loading data...")
     load_data(directory)
     print("Data loaded.")
-    
+    # print('Dict names:', names)
+    # print('Dict people:', people)
+    # print('Dict movies:', movies)
+
     source = person_id_for_name(input("Name: "))
     if source is None:
         sys.exit("Person not found.")
     target = person_id_for_name(input("Name: "))
     if target is None:
         sys.exit("Person not found.")
-    print(target)
-    path = shortest_path(source, target)
 
+    path = shortest_path(source, target)
     if path is None:
         print("Not connected.")
     else:
@@ -91,54 +93,46 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
-    list_start = neighbors_for_person(source)
-    frontier = QueueFrontier()
-    for item in list_start:
-        if item[1] != source:
-            node = Node(state=item, parent=None, action=None)
-            frontier.add(node)
-    
+    # Số state đã khám phả
     num_explored = 0
-    # Tạo một set explored rỗng
+
+    #  Set chứa các state đã khám phá
     explored = set()
 
-    # Lặp cho đến khi tìm được giải pháp
+    start = Node(state=(None, source), parent=None, action=None)
+    frontier = QueueFrontier()
+
+    frontier.add(start)
+
     while True:
-        # Nếu frontier trống, không có bất ky giải pháp nào
         if frontier.empty():
             raise Exception("no solution")
-
-        # Nếu không trống, thì xóa một nốt khỏi frontier
         node = frontier.remove()
         num_explored += 1
-        # print(num_explored)
-        # Nếu node.state là giải pháp
+        
         if node.state[1] == target:
-
-            cells = []
+            solution = []
             while node.parent is not None:
-                cells.append(node.state)
+                solution.append(node.state)
                 node = node.parent
-            cells.reverse()
-            return cells
+            solution.reverse()
+            return solution
 
-        # Nếu không phải goal, thì thêm state vào explored, thêm node mới vào frontier
-        explored.add(node.state) 
-        for item in neighbors_for_person(node.state[1]):
-            if not frontier.contains_state(item) and item[1] != node.state[1] and item not in explored:
-                child = Node(state=item, parent=node, action=None)
-                frontier.add(child)
-                # if item[1] == target:
-                #     cells = []
-                #     while node.parent is not None:
-                #         cells.append(node.state)
-                #         node = node.parent
-                #     cells.reverse()
-                #     return cells
-                
+        explored.add(node.state)
+        new_states = neighbors_for_person(node.state[1])
+        for item in new_states:
+            if not frontier.contains_state(item) and item not in explored: 
+                new_node = Node(state=item, parent=node, action=None)
+                if new_node.state[1] == target:
+                    solution = []
+                    while new_node.parent is not None:
+                        solution.append(new_node.state)
+                        new_node = new_node.parent
+                    solution.reverse()
+                    return solution
+                frontier.add(new_node)
 
-    # raise NotImplementedError
-    
+
 
 def person_id_for_name(name):
     """
